@@ -72,7 +72,7 @@ app.get("/", (req, res) => {
   res.send("Сервер работает!");
 });
 
-const PORT = 5000;
-app.listen(PORT, () =>
-  console.log(`Сервер запущен на http://localhost:${PORT}`)
-);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Сервер запущен на http://localhost:${PORT}`);
+});
