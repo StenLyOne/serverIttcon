@@ -68,12 +68,12 @@ app.delete("/api/contacts/:id", async (req, res) => {
   }
 });
 
-app.get("/api/contacts/", async (req, res) => {
+app.get("/api/contacts", async (req, res) => {
   try {
-    const contacts = Contact.find();
-    res.status(201).json(contacts);
+    const contacts = await Contact.find(); // Получаем все контакты из базы данных
+    res.status(200).json(contacts); // Отправляем их в ответе
   } catch (err) {
-    console.error("Ошибка получния данных", err);
+    console.error("Ошибка получения данных:", err);
     res.status(500).send("Ошибка сервера");
   }
 });
