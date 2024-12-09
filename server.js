@@ -68,6 +68,16 @@ app.delete("/api/contacts/:id", async (req, res) => {
   }
 });
 
+app.get("/api/contacts/", async (req, res) => {
+  try {
+    const contacts = Contact.find();
+    res.status(201).json(contacts);
+  } catch (err) {
+    console.error("Ошибка получния данных", err);
+    res.status(500).send("Ошибка сервера");
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("Сервер работает!");
 });
