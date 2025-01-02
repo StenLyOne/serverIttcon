@@ -33,7 +33,7 @@ const transporter = nodemailer.createTransport({
   service: "Gmail", // Используем Gmail (можно заменить на другой сервис)
   auth: {
     user: "ittconsender@gmail.com", // Укажите ваш Gmail
-    pass: "ittconsender2025", // Укажите пароль от Gmail
+    pass: "voxy kteo igyj tzzg", // Укажите пароль от Gmail
   },
 });
 
@@ -47,9 +47,9 @@ app.post("/api/contacts", async (req, res) => {
     await newContact.save();
 
     const mailOptions = {
-      from: "ittconsender@gmail.com", // Отправитель
-      to: "stenwlad@gmail.com", // Получатель
-      subject: "Новый контакт был добавлен", // Тема письма
+      from: "ittconsender@gmail.com",
+      to: "stenwlad@gmail.com",
+      subject: "New contact was add",
       text: `
         New contact was add:
         Name: ${newContact.firstName} ${newContact.lastName}
@@ -63,14 +63,11 @@ app.post("/api/contacts", async (req, res) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Ошибка при отправке письма:", error);
-        res.status(500).send("Ошибка при отправке письма");
-      } else {
-        console.log("Письмо успешно отправлено:", info.response);
-        res.status(201).send("Данные успешно сохранены и письмо отправлено!");
+        return res.status(500).send("Ошибка при отправке письма");
       }
+      console.log("Письмо успешно отправлено:", info.response);
+      res.status(201).send("Данные успешно сохранены и письмо отправлено!");
     });
-
-    res.status(201).send("Данные успешно сохранены!");
   } catch (err) {
     console.error("Ошибка сохранения данных:", err);
     res.status(500).send("Ошибка сервера");
