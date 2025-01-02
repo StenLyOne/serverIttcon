@@ -48,7 +48,7 @@ app.post("/api/contacts", async (req, res) => {
 
     const mailOptions = {
       from: "ittconsender@gmail.com",
-      to: "stenwlad@gmail.com",
+      to: "ittcon@gmail.com",
       subject: "New contact was add",
       text: `
         New contact was add:
