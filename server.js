@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import cors from "cors";
+import nodemailer from "nodemailer";
 
 mongoose.connect(
   "mongodb+srv://StenLyOne:Stenone123@cluster0.wrnb2wd.mongodb.net/contactsDB?retryWrites=true&w=majority",
@@ -28,6 +29,14 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model("Contact", contactSchema);
 
+const transporter = nodemailer.createTransport({
+  service: "Gmail", // Используем Gmail (можно заменить на другой сервис)
+  auth: {
+    user: "ittconsender@gmail.com", // Укажите ваш Gmail
+    pass: "ittconsender2025", // Укажите пароль от Gmail
+  },
+});
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -36,6 +45,31 @@ app.post("/api/contacts", async (req, res) => {
   try {
     const newContact = new Contact(req.body);
     await newContact.save();
+
+    const mailOptions = {
+      from: "ittconsender@gmail.com", // Отправитель
+      to: "stenwlad@gmail.com", // Получатель
+      subject: "Новый контакт был добавлен", // Тема письма
+      text: `
+        New contact was add:
+        Name: ${newContact.firstName} ${newContact.lastName}
+        Email: ${newContact.email}
+        Country: ${newContact.country}
+        Problem: ${newContact.problems}
+        About: ${newContact.about}
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Ошибка при отправке письма:", error);
+        res.status(500).send("Ошибка при отправке письма");
+      } else {
+        console.log("Письмо успешно отправлено:", info.response);
+        res.status(201).send("Данные успешно сохранены и письмо отправлено!");
+      }
+    });
+
     res.status(201).send("Данные успешно сохранены!");
   } catch (err) {
     console.error("Ошибка сохранения данных:", err);
