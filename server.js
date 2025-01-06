@@ -3,8 +3,6 @@ import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import cors from "cors";
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
 
 mongoose.connect(
   "mongodb+srv://StenLyOne:Stenone123@cluster0.wrnb2wd.mongodb.net/contactsDB?retryWrites=true&w=majority",
@@ -34,8 +32,8 @@ const Contact = mongoose.model("Contact", contactSchema);
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
+    user: "ittconsender@gmail.com",
+    pass: "voxy kteo igyj tzzg",
   },
 });
 
