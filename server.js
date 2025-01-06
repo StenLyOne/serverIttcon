@@ -48,7 +48,21 @@ app.post("/api/contacts", async (req, res) => {
 
     const mailOptions = {
       from: "ittconsender@gmail.com",
-      to: "ittcon@gmail.com",
+      to: "info@ittcon.eu",
+      subject: "New contact was add",
+      text: `
+        New contact was add:
+        Name: ${newContact.firstName} ${newContact.lastName}
+        Email: ${newContact.email}
+        Country: ${newContact.country}
+        Problem: ${newContact.problems}
+        About: ${newContact.about}
+      `,
+    };
+
+    const mailOptions2 = {
+      from: "ittconsender@gmail.com",
+      to: "icon@gmail.com",
       subject: "New contact was add",
       text: `
         New contact was add:
@@ -61,6 +75,15 @@ app.post("/api/contacts", async (req, res) => {
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Ошибка при отправке письма:", error);
+        return res.status(500).send("Ошибка при отправке письма");
+      }
+      console.log("Письмо успешно отправлено:", info.response);
+      res.status(201).send("Данные успешно сохранены и письмо отправлено!");
+    });
+
+    transporter.sendMail(mailOptions2, (error, info) => {
       if (error) {
         console.error("Ошибка при отправке письма:", error);
         return res.status(500).send("Ошибка при отправке письма");
