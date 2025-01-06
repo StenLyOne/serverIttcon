@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import cors from "cors";
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
 
 mongoose.connect(
   "mongodb+srv://StenLyOne:Stenone123@cluster0.wrnb2wd.mongodb.net/contactsDB?retryWrites=true&w=majority",
@@ -30,10 +32,10 @@ const contactSchema = new mongoose.Schema({
 const Contact = mongoose.model("Contact", contactSchema);
 
 const transporter = nodemailer.createTransport({
-  service: "Gmail", // Используем Gmail (можно заменить на другой сервис)
+  service: "Gmail",
   auth: {
-    user: "ittconsender@gmail.com", // Укажите ваш Gmail
-    pass: "voxy kteo igyj tzzg", // Укажите пароль от Gmail
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
@@ -49,9 +51,9 @@ app.post("/api/contacts", async (req, res) => {
     const mailOptions = {
       from: "ittconsender@gmail.com",
       to: "info@ittcon.eu",
-      subject: "New contact was add",
+      subject: "New contact was added",
       text: `
-        New contact was add:
+        New contact was added:
         Name: ${newContact.firstName} ${newContact.lastName}
         Email: ${newContact.email}
         Country: ${newContact.country}
@@ -63,9 +65,9 @@ app.post("/api/contacts", async (req, res) => {
     const mailOptions2 = {
       from: "ittconsender@gmail.com",
       to: "icon@gmail.com",
-      subject: "New contact was add",
+      subject: "New contact was added",
       text: `
-        New contact was add:
+        New contact was added:
         Name: ${newContact.firstName} ${newContact.lastName}
         Email: ${newContact.email}
         Country: ${newContact.country}
@@ -74,25 +76,16 @@ app.post("/api/contacts", async (req, res) => {
       `,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Ошибка при отправке письма:", error);
-        return res.status(500).send("Ошибка при отправке письма");
-      }
-      console.log("Письмо успешно отправлено:", info.response);
-      res.status(201).send("Данные успешно сохранены и письмо отправлено!");
-    });
+    // Отправляем первое письмо
+    await transporter.sendMail(mailOptions);
 
-    transporter.sendMail(mailOptions2, (error, info) => {
-      if (error) {
-        console.error("Ошибка при отправке письма:", error);
-        return res.status(500).send("Ошибка при отправке письма");
-      }
-      console.log("Письмо успешно отправлено:", info.response);
-      res.status(201).send("Данные успешно сохранены и письмо отправлено!");
-    });
+    // Отправляем второе письмо
+    await transporter.sendMail(mailOptions2);
+
+    console.log("Письма успешно отправлены");
+    res.status(201).send("Данные успешно сохранены и письма отправлены!");
   } catch (err) {
-    console.error("Ошибка сохранения данных:", err);
+    console.error("Ошибка сохранения данных или отправки письма:", err);
     res.status(500).send("Ошибка сервера");
   }
 });
