@@ -45,32 +45,39 @@ app.use(bodyParser.json());
 
 app.post("/api/contacts", async (req, res) => {
   try {
+    // Сохраняем контакт в базе данных
     const newContact = new Contact(req.body);
     await newContact.save();
 
-    const mailOptions = {
-      from: "ittconsender@gmail.com",
-      to: "info@ittcon.eu",
-      subject: "New contact was added",
-      text: `
-        New contact was added:
-        Name: ${newContact.firstName} ${newContact.lastName}
-        Email: ${newContact.email}
-        Country: ${newContact.country}
-        Problem: ${newContact.problems}
-        About: ${newContact.about}
-      `,
-    };
+    try {
+      // Настройки для отправки письма
+      const mailOptions = {
+        from: process.env.GMAIL_USER, // Отправитель
+        to: "info@ittcon.eu", // Получатель
+        subject: "New contact was added",
+        text: `
+          New contact was added:
+          Name: ${newContact.firstName} ${newContact.lastName}
+          Email: ${newContact.email}
+          Country: ${newContact.country}
+          Problem: ${newContact.problems}
+          About: ${newContact.about}
+        `,
+      };
 
-    
-    transporter.sendMail(mailOptions);
-    console.log("Письма успешно отправлены");
-    res.status(201).send("Данные успешно сохранены и письма отправлены!");
-  } catch (err) {
-    console.error(
-      "Ошибка сохранения данных или отправки письма:",
-      JSON.stringify(err, null, 2)
-    );
+      // Отправляем письмо
+      await transporter.sendMail(mailOptions);
+      console.log("Письмо успешно отправлено");
+    } catch (emailError) {
+      // Логируем ошибку, но приложение продолжает работать
+      console.error("Ошибка при отправке письма:", emailError.message);
+    }
+
+    // Отправляем ответ клиенту, даже если письмо не отправлено
+    res.status(201).send("Данные успешно сохранены!");
+  } catch (dbError) {
+    // Логируем ошибку, если произошла проблема с базой данных
+    console.error("Ошибка сохранения данных:", dbError.message);
     res.status(500).send("Ошибка сервера");
   }
 });
