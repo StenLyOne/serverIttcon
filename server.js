@@ -1,15 +1,15 @@
 import express from "express";
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import bodyParser from "body-parser";
 import cors from "cors";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "cloudinary";
 dotenv.config();
 
-mongoose.connect(
-  "mongodb+srv://StenLyOne:Stenone123@cluster0.wrnb2wd.mongodb.net/contactsDB?retryWrites=true&w=majority",
-  {}
-);
+mongoose.connect(process.env.MONGO_URI, {});
 
 const db = mongoose.connection;
 db.on("error", (err) => {
@@ -30,6 +30,31 @@ const contactSchema = new mongoose.Schema({
 });
 
 const Contact = mongoose.model("Contact", contactSchema);
+
+const newsSchema = new mongoose.Schema({
+  title: String,
+  content: String,
+  images: [String],
+  date: { type: Date, default: Date.now },
+});
+
+const News = mongoose.model("News", newsSchema);
+
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary.v2,
+  params: {
+    folder: "news-images",
+    allowed_formats: ["jpg", "png", "jpeg"],
+  },
+});
+
+const upload = multer({ storage });
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -114,6 +139,70 @@ app.get("/api/contacts", async (req, res) => {
   } catch (err) {
     console.error("Ошибка получения данных:", err);
     res.status(500).send("Ошибка сервера");
+  }
+});
+
+app.get("/api/news", async (req, res) => {
+  try {
+    const news = await News.find().sort({ date: -1 });
+    res.status(200).json(news);
+  } catch (err) {
+    console.error("News request error:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+app.post("/api/news", upload.array("images", 5), async (req, res) => {
+  try {
+    const imageUrls = processUploadedImages(req);
+    const newNews = new News({ ...req.body, images: imageUrls });
+    await newNews.save();
+    res.status(200).json(newNews);
+  } catch (err) {
+    console.error("Ошибка добавления новости:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+app.put("/api/news/:id", upload.array("images", 5), async (req, res) => {
+  try {
+    const imageUrls = processUploadedImages(req);
+    const updatedFields = { ...req.body };
+
+    if (imageUrls.length) {
+      updatedFields.$push = { images: { $each: imageUrls } };
+    }
+
+    const updatedNews = await News.findByIdAndUpdate(
+      req.params.id,
+      updatedFields,
+      { new: true }
+    );
+
+    res.status(200).json(updatedNews);
+  } catch (err) {
+    console.error("Ошибка обновления новости:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+app.delete("/api/news/:id", async (req, res) => {
+  try {
+    const news = await News.findById(req.params.id);
+    if (news.images.length > 0) {
+      for (const image of news.images) {
+        const match = image.match(/\/([^/]+)\.[^.]+$/);
+        if (match) {
+          const publicId = match[1];
+          await cloudinary.v2.uploader.destroy(publicId);
+        }
+      }
+    }
+    await News.findByIdAndDelete(req.params.id);
+    res.status(200).send("News deleted");
+  } catch (err) {
+    console.error("Error deleting news:", err);
+    res.status(500).send("Server error");
   }
 });
 
