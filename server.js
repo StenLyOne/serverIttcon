@@ -7,12 +7,18 @@ import dotenv from "dotenv";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "cloudinary";
+import AdminJS from "adminjs";
+import AdminJSExpress from "@adminjs/express";
+import AdminJSMongoose from "@adminjs/mongoose";
 dotenv.config();
 
 mongoose.connect(
   "mongodb+srv://StenLyOne:Stenone123@cluster0.wrnb2wd.mongodb.net/contactsDB?retryWrites=true&w=majority",
   {}
 );
+
+const router = AdminJSExpress.buildRouter(adminJs);
+app.use(adminJs.options.rootPath, router);
 
 const db = mongoose.connection;
 db.on("error", (err) => {
@@ -70,6 +76,28 @@ const transporter = nodemailer.createTransport({
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+
+AdminJS.registerAdapter(AdminJSMongoose);
+
+const adminJs = new AdminJS({
+  resources: [Contact, News],
+  rootPath: "/admin",
+});
+
+const adminRouter = AdminJSExpress.buildAuthenticatedRouter(adminJs, {
+  authenticate: async (email, password) => {
+    if (
+      email === process.env.ADMIN_EMAIL &&
+      password === process.env.ADMIN_PASS
+    ) {
+      return { email };
+    }
+    return null;
+  },
+  cookieName: "adminjs",
+  cookiePassword: process.env.ADMIN_COOKIE_PASSWORD || "someSecretPassword",
+});
+app.use(adminJs.options.rootPath, adminRouter);
 
 app.post("/api/contacts", async (req, res) => {
   try {
