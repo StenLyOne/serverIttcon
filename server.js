@@ -1,5 +1,5 @@
 import express from "express";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import cors from "cors";
 import nodemailer from "nodemailer";
@@ -9,16 +9,14 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "cloudinary";
 import AdminJS from "adminjs";
 import AdminJSExpress from "@adminjs/express";
-import AdminJSMongoose from "@adminjs/mongoose";
+import * as AdminJSMongoose from "@adminjs/mongoose";
+
 dotenv.config();
 
 mongoose.connect(
   "mongodb+srv://StenLyOne:Stenone123@cluster0.wrnb2wd.mongodb.net/contactsDB?retryWrites=true&w=majority",
   {}
 );
-
-const router = AdminJSExpress.buildRouter(adminJs);
-app.use(adminJs.options.rootPath, router);
 
 const db = mongoose.connection;
 db.on("error", (err) => {
