@@ -9,7 +9,10 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "cloudinary";
 dotenv.config();
 
-mongoose.connect(process.env.MONGO_URI, {});
+mongoose.connect(
+  "mongodb+srv://StenLyOne:Stenone123@cluster0.wrnb2wd.mongodb.net/contactsDB?retryWrites=true&w=majority",
+  {}
+);
 
 const db = mongoose.connection;
 db.on("error", (err) => {
