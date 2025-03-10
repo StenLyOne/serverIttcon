@@ -139,11 +139,24 @@ app.get("/api/contacts", async (req, res) => {
   try {
     const contacts = await Contact.find(); // Получаем все контакты из базы данных
     const total = await Contact.countDocuments();
-    res.set("Content-Range", `contacts 0-${contacts.length - 1}/${total}`);
 
-    // Не забудьте разрешить клиенту видеть этот заголовок через CORS
+    const formattedContacts = contacts.map((contact) => ({
+      id: contact._id.toString(), // Меняем _id на id
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      email: contact.email,
+      country: contact.country,
+      problems: contact.problems,
+      about: contact.about,
+    }));
+
+    res.set(
+      "Content-Range",
+      `contacts 0-${formattedContacts.length - 1}/${total}`
+    );
     res.set("Access-Control-Expose-Headers", "Content-Range");
-    res.status(200).json(contacts); // Отправляем их в ответе
+
+    res.status(200).json(formattedContacts);
   } catch (err) {
     console.error("Ошибка получения данных:", err);
     res.status(500).send("Ошибка сервера");
@@ -154,11 +167,20 @@ app.get("/api/news", async (req, res) => {
   try {
     const news = await News.find().sort({ date: -1 });
     const total = await News.countDocuments();
-    res.set("Content-Range", `news 0-${news.length - 1}/${total}`);
 
-    // Не забудьте разрешить клиенту видеть этот заголовок через CORS
+    // Преобразуем _id → id, чтобы React Admin понимал формат
+    const formattedNews = news.map((item) => ({
+      id: item._id.toString(), // Меняем _id на id
+      title: item.title,
+      content: item.content,
+      images: item.images,
+      date: item.date,
+    }));
+
+    res.set("Content-Range", `news 0-${formattedNews.length - 1}/${total}`);
     res.set("Access-Control-Expose-Headers", "Content-Range");
-    res.status(200).json(news);
+
+    res.status(200).json(formattedNews);
   } catch (err) {
     console.error("News request error:", err);
     res.status(500).send("Server error");
