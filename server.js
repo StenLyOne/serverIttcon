@@ -138,6 +138,11 @@ app.delete("/api/contacts/:id", async (req, res) => {
 app.get("/api/contacts", async (req, res) => {
   try {
     const contacts = await Contact.find(); // Получаем все контакты из базы данных
+    const total = await Contact.countDocuments();
+    res.set("Content-Range", `contacts 0-${contacts.length - 1}/${total}`);
+
+    // Не забудьте разрешить клиенту видеть этот заголовок через CORS
+    res.set("Access-Control-Expose-Headers", "Content-Range");
     res.status(200).json(contacts); // Отправляем их в ответе
   } catch (err) {
     console.error("Ошибка получения данных:", err);
@@ -148,6 +153,11 @@ app.get("/api/contacts", async (req, res) => {
 app.get("/api/news", async (req, res) => {
   try {
     const news = await News.find().sort({ date: -1 });
+    const total = await News.countDocuments();
+    res.set("Content-Range", `news 0-${news.length - 1}/${total}`);
+
+    // Не забудьте разрешить клиенту видеть этот заголовок через CORS
+    res.set("Access-Control-Expose-Headers", "Content-Range");
     res.status(200).json(news);
   } catch (err) {
     console.error("News request error:", err);
